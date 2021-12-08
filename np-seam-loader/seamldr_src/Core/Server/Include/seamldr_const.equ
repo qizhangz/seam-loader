@@ -1,0 +1,28 @@
+;**********************************************************************;
+;*                                                                    *;
+;* Intel Proprietary                                                  *;
+;*                                                                    *;
+;* Copyright 2021 Intel Corporation All Rights Reserved.              *;
+;*                                                                    *;
+;* Your use of this software is governed by the TDX Source Code       *;
+;* LIMITED USE LICENSE.                                               *;
+;*                                                                    *;
+;* The Materials are provided "as is," without any express or         *;
+;* implied warranty of any kind including warranties of               *;
+;* merchantability, non-infringement, title, or fitness for a         *;
+;* particular purpose.                                                *;
+;*                                                                    *;
+;**********************************************************************;
+
+SEAMLDR_CONST EQU 0
+
+P_SEAMLDR_CONST MACRO
+	PSeamldrConst LABEL ACM_P_SEAMLDR_CONST
+		CDataStackSize 			QWORD 0
+		CCodeRgnSize			QWORD 0
+		CDataRgnSize			QWORD 0
+		CKeyholeRgnSize			QWORD 0
+		CKeyholeEditRgnSize		QWORD 0
+		CEntryPointOffset		QWORD 0
+	P_SEAMLDR_CONST_OFF 	EQU OFFSET PSeamldrConst - HeaderStart
+ENDM

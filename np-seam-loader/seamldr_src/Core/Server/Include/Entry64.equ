@@ -1,0 +1,102 @@
+;**********************************************************************;
+;*                                                                    *;
+;* Intel Proprietary                                                  *;
+;*                                                                    *;
+;* Copyright 2021 Intel Corporation All Rights Reserved.              *;
+;*                                                                    *;
+;* Your use of this software is governed by the TDX Source Code       *;
+;* LIMITED USE LICENSE.                                               *;
+;*                                                                    *;
+;* The Materials are provided "as is," without any express or         *;
+;* implied warranty of any kind including warranties of               *;
+;* merchantability, non-infringement, title, or fitness for a         *;
+;* particular purpose.                                                *;
+;*                                                                    *;
+;**********************************************************************;
+
+IFNDEF ENTRY64_EQU
+ENTRY64_EQU EQU 0
+
+;-----------------------------------------------------------------------------
+;-----------------------------------------------------------------------------
+;  Macro:	START_FRAME
+;
+;  Input:	None
+;
+;  Output:	None
+;
+;  Registers:
+;
+;  Description:	Starts frame declaration. Creates variable to hold total
+;               size of all local vars.
+;
+;-----------------------------------------------------------------------------
+;-----------------------------------------------------------------------------
+
+START_FRAME MACRO
+        SZ = 0
+ENDM
+
+
+;-----------------------------------------------------------------------------
+;-----------------------------------------------------------------------------
+;  Macro:	MAKE_LOCAL
+;
+;  Input:	ARG - var definition in form Label[Count]:QuolifiedType
+;
+;  Output:	None
+;
+;  Registers:
+;
+;  Description:	Defines local procedure variable. Adds size of created variable
+;               to total size of locals.
+;               size of all local vars.
+;
+;-----------------------------------------------------------------------------
+;-----------------------------------------------------------------------------
+
+MAKE_LOCAL MACRO ARG:REQ
+        LOCAL brk, rbrk, clm, lbl, cnt, qtp
+        brk  INSTR <ARG>, <[>
+        rbrk INSTR <ARG>, <]>
+        clm INSTR <ARG>, <:>
+        IF brk GT 0
+          lbl SUBSTR <ARG>, 1, brk-1
+          cnt SUBSTR <ARG>, brk+1, rbrk-brk-1
+          qtp SUBSTR <ARG>, clm+1
+          LOCAL lbl[cnt]:qtp
+        ELSE
+          lbl SUBSTR <ARG>, 1, clm-1
+          qtp SUBSTR <ARG>, clm+1
+          LOCAL lbl:qtp
+        ENDIF
+
+        SZ = SZ + sizeof lbl
+ENDM
+
+;-----------------------------------------------------------------------------
+;-----------------------------------------------------------------------------
+;  Macro:	END_FRAME
+;
+;  Input:	None
+;
+;  Output:	None
+;
+;  Registers:
+;
+;  Description:	Ends frame declaration. Creates stack sufficient to hold
+;               all declared variables.
+;
+;-----------------------------------------------------------------------------
+;-----------------------------------------------------------------------------
+
+END_FRAME MACRO
+        SZ = SZ + 10h                   ; Margin
+	enter SZ, 0                     ; With spare room on stack
+	.allocstack	SZ
+	.endprolog
+ENDM
+
+        EXTERNDEF  Target64:NEAR
+
+ENDIF

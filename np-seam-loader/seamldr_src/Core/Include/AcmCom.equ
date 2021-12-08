@@ -1,0 +1,235 @@
+;**********************************************************************;
+;*                                                                    *;
+;* Intel Proprietary                                                  *;
+;*                                                                    *;
+;* Copyright 2021 Intel Corporation All Rights Reserved.              *;
+;*                                                                    *;
+;* Your use of this software is governed by the TDX Source Code       *;
+;* LIMITED USE LICENSE.                                               *;
+;*                                                                    *;
+;* The Materials are provided "as is," without any express or         *;
+;* implied warranty of any kind including warranties of               *;
+;* merchantability, non-infringement, title, or fitness for a         *;
+;* particular purpose.                                                *;
+;*                                                                    *;
+;**********************************************************************;
+
+IFNDEF ACMCOM_EQU
+ACMCOM_EQU EQU 0
+
+;
+; Paging structures and records
+;
+
+l4	RECORD	BASE_pml4l:20,O_pml4l:6,A_pml4l:1,PCD_pml4l:1,PWT_pml4l:1,US_pml4l:1,RW_pml4l:1,P_pml4l:1
+h4	RECORD	EXB_pml4h:1,O_pml4h:11,BASE_pml4h:20
+
+PML4 STRUCT
+         pml4l   DWORD 0
+         pml4h   DWORD 0
+PML4 ENDS
+
+l3	RECORD	BASE_pdpl:20,O_pdpl:6,A_pdpl:1,PCD_pdpl:1,PWT_pdpl:1,US_pdpl:1,RW_pdpl:1,P_pdpl:1
+h3	RECORD	EXB_pdph:1,O_pdph:11,BASE_pdph:20
+
+PDP STRUCT
+        pdpl   DWORD 0
+        pdph   DWORD 0
+PDP ENDS
+
+
+l2	RECORD	BASE_pdl:11,O_pdl:13,PS_pdl:1,D_pdl:1,A_pdl:1,PCD_pdl:1,PWT_pdl:1,US_pdl:1,RW_pdl:1,P_pdl:1
+h2	RECORD	EXB_pdh:1,O_pdh:11,BASE_pdh:20
+
+PD STRUCT
+        pdl   DWORD 0
+        pdh   DWORD 0
+PD ENDS
+
+PSE_R0	RECORD	BASEL_pse:10,BASEH_pse:9,PAT_pse:1,O_pse:3,G_pse:1,PS_pse:1,D_pse:1,A_pse:1,PCD_pse:1,PWT_pse:1,US_pse:1,RW_pse:1,P_pse:1
+
+;
+; Crash register record
+;
+CR	RECORD	Valid_cr:1,SwGenerated_cr:1,Res_cr:5,Minor_cr:9,Source_cr:1,Major_cr:5,Class_cr:6,AcmType_cr:4
+;
+; Policy control record
+;
+PC	RECORD	Res2_pc:28,OWN_REQ_pc:1,CAP_EXT_pc:1,NPW_OK_pc:1,RES_pc:1
+
+
+
+VACANT      EQU 00h
+NOT_VACANT  EQU 0ffh
+
+ _GETSEC     EQU db 0Fh, 37h
+ _MONITOR    EQU db 0Fh, 01h, 0C8h
+ _MWAIT      EQU db 0Fh, 01h, 0C9h
+
+GETSEC_EXITAC MACRO
+        LOCAL RETURN_ADDRESS
+        mov     eax, EXITAC                  ; GETSEC (EAX=3) for ExitAC
+        mov     ebx, OFFSET RETURN_ADDRESS
+        xor     ecx, ecx
+        xor     edx, edx
+        _GETSEC
+RETURN_ADDRESS:
+ENDM
+
+GETSEC_WAKEUP MACRO
+        mov     eax, WAKEUP                  ; GETSEC (EAX=8) for WAKEUP
+        xor     ebx, ebx
+        xor     ecx, ecx
+        xor     edx, edx
+        _GETSEC
+ENDM
+
+GETSEC_SEXIT MACRO
+        mov     eax, SEXIT                  ; GETSEC (EAX=5) for SEXIT
+        xor     ebx, ebx
+        xor     ecx, ecx
+        xor     edx, edx
+        _GETSEC
+ENDM
+
+
+
+EDATA_VAR MACRO var:REQ
+
+        EXITM <[ebp + OFFSET var]>
+
+ENDM
+
+EDATA_VAR_OFFSET_IN_EAX MACRO var:REQ
+        ;;
+        ;; ebp keeps address of SINIT module in memory
+        ;;
+        mov     eax, ebp
+        add     eax, OFFSET var
+ENDM
+
+PROGRESS_MARK MACRO code
+        INVOKE  ProgressMark, code
+IF MKF_ENGINEERING EQ 1
+IF MKF_TRACE EQ 1
+
+        TraceProgress PROTO :DWORD
+        INVOKE  TraceProgress, code
+
+ENDIF
+ENDIF
+ENDM
+
+TRAMPOLINE_ERROR MACRO code
+IF MKF_ENGINEERING EQ 1
+IF MKF_TRACE EQ 1
+
+        TraceTrampolineCodeError PROTO :DWORD
+        INVOKE  TraceTrampolineCodeError, code
+
+ENDIF
+ENDIF
+ENDM
+
+STACK_TEST_FILL_IN MACRO
+IF MKF_ENGINEERING EQ 1
+        mov     edi, OFFSET stackStart
+	mov	ecx, esp
+	sub	ecx, OFFSET stackStart
+	shr	ecx, 2
+	mov	eax, 0CCCCCCCCh
+	rep	stosd
+ENDIF
+ENDM
+
+CHIPSET_ID_TBL MACRO
+        ChipsetIdTbl LABEL ACM_CHIPSET_ID_TBL
+                ChipsetIdCount    dd      CHIPSET_ID_COUNT ;; Number of entries in array of ChipsetIDs
+                ChipsetIdArray    ACM_CHIPSET_ID MF_CS_PRESENT_1 DUP (<MF_REVID_MASK_1, 8086h, MF_DEVICE_ID_1, MF_REVISION_ID_1, 00h, 00h>)      ;1st Chipset supported
+                                IF MF_CS_PRESENT_2
+                                  ACM_CHIPSET_ID MF_CS_PRESENT_2 DUP (<MF_REVID_MASK_2, 8086h, MF_DEVICE_ID_2, MF_REVISION_ID_2, 00h, 00h>)      ;1st Chipset supported
+                                ENDIF
+                                IF MF_CS_PRESENT_3
+                                  ACM_CHIPSET_ID MF_CS_PRESENT_3 DUP (<MF_REVID_MASK_3, 8086h, MF_DEVICE_ID_3, MF_REVISION_ID_3, 00h, 00h>)      ;1st Chipset supported
+                                ENDIF
+                                IF MF_CS_PRESENT_4
+                                  ACM_CHIPSET_ID MF_CS_PRESENT_4 DUP (<MF_REVID_MASK_4, 8086h, MF_DEVICE_ID_4, MF_REVISION_ID_4, 00h, 00h>)      ;1st Chipset supported
+                                ENDIF
+
+        CHIPSET_ID_TBL_OFF EQU OFFSET ChipsetIdTbl - OFFSET HeaderStart
+
+ENDM
+
+PROCESSOR_ID_TBL MACRO
+        ProcessorIdTbl LABEL ACM_PROCESSOR_ID_TBL
+                ProcessorIdCount  dd      PROCESSOR_ID_COUNT ;; Number of entries in array of ProcessorIDs
+                ProcessorIdArray  ACM_PROCESSOR_ID MF_PROC_PRESENT_1 DUP (<MF_FMS_1, MF_FMS_MASK_1, PLATFORM_ID_1, PLATFORM_ID_MASK_1>)      ;1st Processor supported
+                                IF MF_PROC_PRESENT_2
+                                  ACM_PROCESSOR_ID MF_PROC_PRESENT_2 DUP (<MF_FMS_2, MF_FMS_MASK_2, PLATFORM_ID_2, PLATFORM_ID_MASK_2>)      ;2nd Processor supported
+                                ENDIF
+                                IF MF_PROC_PRESENT_3
+                                  ACM_PROCESSOR_ID MF_PROC_PRESENT_3 DUP (<MF_FMS_3, MF_FMS_MASK_3, PLATFORM_ID_3, PLATFORM_ID_MASK_3>)      ;3rd Processor supported
+                                ENDIF
+                                IF MF_PROC_PRESENT_4
+                                  ACM_PROCESSOR_ID MF_PROC_PRESENT_4 DUP (<MF_FMS_4, MF_FMS_MASK_4, PLATFORM_ID_4, PLATFORM_ID_MASK_4>)      ;4th Processor supported
+                                ENDIF
+                                IF MF_PROC_PRESENT_5 
+                                  ACM_PROCESSOR_ID MF_PROC_PRESENT_5 DUP (<MF_FMS_5, MF_FMS_MASK_5, PLATFORM_ID_5, PLATFORM_ID_MASK_5>)      ;5th Processor supported
+                                ENDIF
+
+        PROCESSOR_ID_TBL_OFF EQU OFFSET ProcessorIdTbl - OFFSET HeaderStart
+
+ENDM
+
+TPM_CAPABILITIES_TBL MACRO
+        TpmCapabilitiesTbl LABEL ACM_TPM_CAPABILITIES_TBL
+                AcmTpmCapabilities      dd      MCP_ACM_TPM_CAPABILITIES
+                AlgIdCount              dw      ALG_ID_COUNT
+                                        IF MF_ALG_SHA1_PRESENT
+                                          dw    TPM_ALG_SHA1
+                                        ENDIF
+                                        IF MF_ALG_SHA256_PRESENT
+                                          dw    TPM_ALG_SHA256
+                                        ENDIF
+                                        IF MF_ALG_SHA384_PRESENT
+                                          dw    TPM_ALG_SHA384
+                                        ENDIF
+                                        IF MF_ALG_SHA512_PRESENT
+                                          dw    TPM_ALG_SHA512
+                                        ENDIF
+                                        IF MF_ALG_SM3_256_PRESENT
+                                          dw    TPM_ALG_SM3_256
+                                        ENDIF
+                                        IF MF_ALG_RSASSA_PRESENT
+                                          dw    TPM_ALG_RSASSA
+                                        ENDIF
+                                        IF MF_ALG_ECDSA_PRESENT
+                                          dw    TPM_ALG_ECDSA
+                                        ENDIF
+                                        IF MF_ALG_SM2_PRESENT
+                                          dw    TPM_ALG_SM2
+                                        ENDIF
+
+        TPM_CAPABILITIES_TBL_OFF EQU OFFSET TpmCapabilitiesTbl - OFFSET HeaderStart
+
+ENDM
+;
+; Repeated for header.asm
+;
+TPM_ALG_SHA1    EQU     04h
+TPM_ALG_SHA256  EQU     0Bh
+TPM_ALG_SHA384  EQU     0Ch
+TPM_ALG_SHA512  EQU     0Dh
+TPM_ALG_SM3_256 EQU     012h
+TPM_ALG_RSASSA  EQU     014h
+TPM_ALG_ECDSA   EQU     018h
+TPM_ALG_SM2     EQU     01Bh
+
+
+;EXTERNDEF ACM_CODE_SELECTOR:ABS
+;EXTERNDEF ACM_DATA_SELECTOR:ABS
+;EXTERNDEF ACM_CODE64_SELECTOR:ABS
+;EXTERNDEF GDT_SIZE:ABS
+
+ENDIF
+
