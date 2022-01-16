@@ -249,18 +249,6 @@ _STATIC_INLINE_ bool_t pseamldr_memcmp_to_zero(void *a, uint64_t nBytes)
 }
 
 /**
- * @brief Check the HPA for shared access semantics
- *
- *  1) Check that the provided HPA is outside SEAMRR.
- *  2) Check that HKID bits in the HPA are in the range configured for shared HKIDs (0 to MAX_MKTME_HKIDS – 1).
- *
- * @param hpa HPA to be checked
- *
- * @return Error code that states the reason of failure
- */
-bool_t shared_hpa_check(pa_t hpa);
-
-/**
  * @brief Adds alignment check with power of 2 size to shared_hpa_check
  *
  * @param hpa HPA to be checked
@@ -345,5 +333,9 @@ bool_t compute_and_verify_hash(const uint8_t* message, uint32_t message_len, con
  */
 uint64_t get_num_addressable_lps_on_socket(void);
 
+/**
+ * @brief Clear MISC_ENABLE_MSR[22] bit if it is set and then calls CPUID. Sets back MISC_ENABLE_MSR[22] bit before returning 
+ */
+void ia32_safe_cpuid(uint32_t leaf, uint32_t subleaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx);
 
 #endif /* SRC_COMMON_HELPERS_HELPERS_H_ */

@@ -31,14 +31,17 @@
 
 #define IA32_PRED_CMD_MSR_ADDR                           0x49
 #define IA32_SGX_DEBUG_MODE_MSR_ADDR                     0x503
+#define IA32_MISC_ENABLE_MSR_ADDR                        0x1A0
+
 
 #define IA32_INTR_PENDING_MSR_ADDR                       0x9A
 
 #define IA32_SEAMRR_BASE_AND_MASK_MASK           BITS((MAX_PA-1), 25)
 
-#define IA32_S_CET_SH_STK_EN_BIT     BIT(0)
-#define IA32_S_CET_ENDBR_EN_BIT      BIT(2)
-#define IA32_S_CET_NO_TRACK_EN_BIT   BIT(4)
+#define IA32_MISC_ENABLE_BOOT_NT4_BIT BIT(22)
+#define IA32_S_CET_SH_STK_EN_BIT      BIT(0)
+#define IA32_S_CET_ENDBR_EN_BIT       BIT(2)
+#define IA32_S_CET_NO_TRACK_EN_BIT    BIT(4)
 
 typedef union
 {

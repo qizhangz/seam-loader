@@ -229,6 +229,12 @@ static api_error_type check_seamldr_params(pseamldr_data_t* pseamldr_data, seaml
     // - All physical address pointers are valid input addresses (as defined for RCX)
     // - The NUM_MODULE_PAGES is within bounds
 
+    IF_RARE (seamldr_params->version != 0)
+    {
+        TDX_ERROR("Seamldr params version field is not zero\n");
+        return PSEAMLDR_EBADPARAM;
+    }
+    
     IF_RARE (!pseamldr_memcmp_to_zero(seamldr_params->reserved, sizeof(seamldr_params->reserved)))
     {
         TDX_ERROR("Seamldr params reserved fields are not zero\n");
@@ -294,10 +300,6 @@ static api_error_type initialize_memory_constants(pseamldr_data_t* pseamldr_data
     }
 
     aslr_mask = (rdrand & ASLR_BIT_MASK) << 32;
-
-#ifdef BULLSEYE_BUILD
-    aslr_mask = 0;
-#endif
 
     // Set C_NUM_ADDR_LP = num_addr_lp_per_skt * P_SYS_INFO_TABLE.TOT_NUM_SOCKETS
     mem_consts->num_addressable_lps = get_num_addressable_lps_on_socket() *
@@ -541,7 +543,7 @@ api_error_type seamldr_install(uint64_t seamldr_params_pa)
         goto EXIT;
     }
 
-    // The following steps apply only to the “last” LP:
+    // The following steps apply only to the last LP:
 
     // ************************ Input checks ************************
     // Check SEAMLDR PARAMS input PA

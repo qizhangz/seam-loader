@@ -47,6 +47,7 @@
 #define C_MODULE_RGN_BASE               0x0000000200000000
 #define CODE_REGION_ALLOCATED_SIZE      _2MB
 #define P_SEAMLDR_SHADOW_STACK_SIZE     _4KB
+#define C_VMCS_REGION_SIZE              _8KB        // including the reserved unmapped page
 
 #ifdef _TDXIO_SUPPORT
 #define C_P_SYS_INFO_TABLE_SIZE         _12KB

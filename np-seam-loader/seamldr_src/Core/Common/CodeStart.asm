@@ -145,6 +145,30 @@ AcmEntryPoint PROC NEAR
 
         and     eax, 0FFFFFF00h
         wrmsr
+        
+        ; for non PW ACMs: make sure to work only in pre-PV steps:
+        mov eax, 1
+        xor ecx, ecx
+        cpuid
+
+        cmp eax, SPR_C0_FMS
+        je _CPUID_STEP_OK
+        cmp eax, SPR_D0_FMS
+        je _CPUID_STEP_OK
+        cmp eax, SPR_E0_FMS
+        je _CPUID_STEP_OK
+        db      0Fh, 0Bh                ; ud2  
+        _CPUID_STEP_OK:        
+
+
+        mov     ecx, MSR_BIOS_DONE
+        rdmsr
+        test    eax, 1
+        jnz _BIOS_DONE_LOCKED
+        db      0Fh, 0Bh                ; ud2
+        
+        _BIOS_DONE_LOCKED:
+
 
         mov     esi, OFFSET stackStart+40h
         add     esi, ebp                ; point to ACM reloc table for fixup
@@ -245,32 +269,23 @@ FixupLoop:
         add     AcmTop, eax             ; Save end address of ACM
         
         ;
-        ; The race condition between uCode issuing CMD.OPEN-PRIVATE
-        ; and ACM reading crash register to save/restore it has been
-        ; identified. The race condition led to value "-1" read from
-        ; status register because private space has not been actually
-        ; opened yet at the time of this read. Measured delay between
-        ; command and read was approximately 4us. Delay loop below is
-        ; 5 times longer what has be sufficient in all cases unless
-        ; part is hopelessly broken. Yet another side effect is
-        ; that if the loop expires meaning that private space is not
-        ; opened we cannot issue LT.RESET or update crash code since
-        ; both registers belong to closed private space.
-        ; That is why since there is no good action to take, we are
-        ; not doing any and let code fall through. The same would
-        ; happen without added loop so code doesn't add any
-        ; additional risk. 
+        ; make sure TXT private space is already open before continuing
         ; 
-        DELAY_20US       EQU     43
+
+        ; retry a long time
+        RETRIES          EQU     080000000h
         
-        mov     ecx, DELAY_20US
+        mov     ecx, RETRIES
         mov     edi, LT_PRV_BASE + TXT.LT_STS
         
         .REPEAT
-         mov   eax, DWORD PTR [edi]
-        .BREAK .IF eax != 0FFFFFFFFh
-	    out	0EDh, al
+          mov   eax, DWORD PTR [edi]
+          .BREAK .IF eax != 0FFFFFFFFh
+          pause          
         .UNTILCXZ
+        .if ecx == 0
+           db      0Fh, 0Bh                ; ud2
+        .endif
         
    
         mov     eax, cr4

@@ -22,7 +22,10 @@
 #include "seam_memory_map.h"
 #include "../../../include/pseamldr_basic_defs.h"
 
-static uint64_t map_seam_range_page(memory_constants_t* mem_consts, uint64_t pa, uint64_t la, uint64_t attributes)
+#define PAGING_LEVEL_PDE               1
+
+static uint64_t map_seam_range_page(memory_constants_t* mem_consts, uint64_t pa, uint64_t la, uint64_t attributes,
+                                    bool_t keyhole_range)
 {
     uint64_t pt_idx;
     ia32e_pxe_t* pxe_ptr;
@@ -55,7 +58,17 @@ static uint64_t map_seam_range_page(memory_constants_t* mem_consts, uint64_t pa,
             {
                 return NULL_PA;
             }
-            pxe_ptr[pt_idx].raw = mem_consts->current_pt_physbase | SEAM_NON_LEAF_PXE_ATTRIBUTES;
+            pxe_ptr[pt_idx].raw = mem_consts->current_pt_physbase;
+
+            if (keyhole_range && (i == PAGING_LEVEL_PDE))
+            {
+                pxe_ptr[pt_idx].raw |= SEAM_KEYHOLE_PDE_ATTRIBUTES;
+            }
+            else
+            {
+                pxe_ptr[pt_idx].raw |= SEAM_NON_LEAF_PXE_ATTRIBUTES;
+            }
+
             mem_consts->current_pt_physbase -= PAGE_SIZE_IN_BYTES;
         }
 
@@ -75,7 +88,7 @@ static bool_t map_regular_range(memory_constants_t* mem_consts, uint64_t range_p
 {
     for (uint64_t i = 0; i < size_in_bytes / PAGE_SIZE_IN_BYTES; i++)
     {
-        uint64_t pxe_pa = map_seam_range_page(mem_consts, range_pa, range_la, attributes);
+        uint64_t pxe_pa = map_seam_range_page(mem_consts, range_pa, range_la, attributes, false);
         IF_RARE (pxe_pa == NULL_PA)
         {
             return false;
@@ -97,7 +110,7 @@ static bool_t map_keyhole_range(memory_constants_t* mem_consts)
 
     for (uint32_t i = 0; i < mem_consts->keyhole_region_size / PAGE_SIZE_IN_BYTES; i++)
     {
-        curr_mapped_pt_pa = map_seam_range_page(mem_consts, 0, keyhole_rgn_la, SEAM_KEYHOLE_RANGE_ATTRIBUTES);
+        curr_mapped_pt_pa = map_seam_range_page(mem_consts, 0, keyhole_rgn_la, SEAM_KEYHOLE_RANGE_ATTRIBUTES, true);
         if (curr_mapped_pt_pa == NULL_PA)
         {
             return false;
@@ -112,7 +125,7 @@ static bool_t map_keyhole_range(memory_constants_t* mem_consts)
             }
 
             if (map_seam_range_page(mem_consts, curr_mapped_pt_pa, keyedit_rgn_la,
-                                    SEAM_KEYHOLE_EDIT_RANGE_ATRIBUTES) == NULL_PA)
+                                    SEAM_KEYHOLE_EDIT_RANGE_ATRIBUTES, false) == NULL_PA)
             {
                 return false;
             }

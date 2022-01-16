@@ -57,7 +57,7 @@ static UINT32 GetX2ApicId()
 UINT64 LoadModuleCode(UINT8 *Module, UINT32 ModuleSize) {   
     UINT64 Status = NP_SEAMLDR_PARAMS_STATUS_SUCCESS;
 
-    Status = memcpy_s((void *)(SeamldrData.SeamrrVaLimit - (SeamldrData.PSeamldrConsts->CCodeRgnSize + C_P_SYS_INFO_TABLE_SIZE)), ModuleSize, Module, ModuleSize);
+    Status = memcpy_s((void *)(SeamldrData.SeamrrVaLimit - (SeamldrData.PSeamldrConsts->CCodeRgnSize + C_P_SYS_INFO_TABLE_SIZE)), SeamldrData.PSeamldrConsts->CCodeRgnSize, Module, ModuleSize);
 
     return Status;
 }
@@ -266,6 +266,10 @@ void SeamldrAcm(SEAMLDR_COM64_DATA *pCom64, PT_CTX* PtCtx) {
     // SAVE BIOS ID before the first CPUID
     OriginalBIOSID = readMsr64(MSR_IA32_BIOS_SIGN_ID);
 
+    ia32_misc_enable_org = readMsr64(MSR_IA32_MISC_ENABLES);
+    writeMsr64(MSR_IA32_MISC_ENABLES, ia32_misc_enable_org & (~(UINT64)IA32_CR_MISC_ENABLES_BOOT_NT4_BIT));
+
+
     // SAVE OS XMM's
 
     SeamldrData.MaximumSupportMemAddress = GetPhyAddrMask();
@@ -408,12 +412,12 @@ void SeamldrAcm(SEAMLDR_COM64_DATA *pCom64, PT_CTX* PtCtx) {
 
     CPagingStructSize = PAGING_STRUCTURE_SIZE(SeamldrData.PSeamldrConsts->CDataRgnSize) + PAGING_STRUCTURE_SIZE(SeamldrData.PSeamldrConsts->CCodeRgnSize) +
         PAGING_STRUCTURE_SIZE(SeamldrData.PSeamldrConsts->CDataStackSize + P_SEAMLDR_SHADOW_STACK_SIZE) + PAGING_STRUCTURE_SIZE(SeamldrData.PSeamldrConsts->CKeyholeRgnSize) +
-        PAGING_STRUCTURE_SIZE(SeamldrData.PSeamldrConsts->CKeyholeEditRgnSize) + 
+        PAGING_STRUCTURE_SIZE(SeamldrData.PSeamldrConsts->CKeyholeEditRgnSize) + PAGING_STRUCTURE_SIZE(C_P_SYS_INFO_TABLE_SIZE) + 
         PAGING_STRUCTURE_SIZE(SeamldrData.SeamrrSize - SeamldrData.PSysInfoTable->PSeamldrRange.Size) + _4KB;
     
 
     if (SeamldrData.PSysInfoTable->PSeamldrRange.Size < SeamldrData.PSeamldrConsts->CCodeRgnSize + SeamldrData.PSeamldrConsts->CDataStackSize + P_SEAMLDR_SHADOW_STACK_SIZE +
-        SeamldrData.PSeamldrConsts->CDataRgnSize + CPagingStructSize) {
+        + C_VMCS_REGION_SIZE + C_P_SYS_INFO_TABLE_SIZE + SeamldrData.PSeamldrConsts->CDataRgnSize + CPagingStructSize) {
         ComSerialOut("Pseamldr Range too small\n");
         Status = NP_SEAMLDR_PARAMS_STATUS_ENOMEM;
         goto EXIT;
@@ -466,7 +470,11 @@ void SeamldrAcm(SEAMLDR_COM64_DATA *pCom64, PT_CTX* PtCtx) {
     };
 
     ComSerialOut("Setup Data Region\n");
-    (void)SetupDataRegion(&SeamrrPtCtx);
+    Status = SetupDataRegion(&SeamrrPtCtx);
+    if (Status != NP_SEAMLDR_PARAMS_STATUS_SUCCESS) {
+        ComSerialOut("Failed to setup data region\n");
+        goto EXIT;
+    };
 
     // map system information tables
     ComSerialOut("Map SysInfoTable\n");
@@ -495,6 +503,7 @@ void SeamldrAcm(SEAMLDR_COM64_DATA *pCom64, PT_CTX* PtCtx) {
 
 EXIT:
     pCom64->RetVal = Status;
+    writeMsr64(MSR_IA32_MISC_ENABLES, ia32_misc_enable_org);
     if (SEAMRRUnlocked) {
         if (MutexAcquired) {
             SeamldrData.PSysInfoTable->NpSeamldrMutex = NP_SEAMLDR_MUTEX_CLEAR;

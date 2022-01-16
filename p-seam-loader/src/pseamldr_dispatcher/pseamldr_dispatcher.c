@@ -27,7 +27,7 @@ static void pseamldr_initialize_system_values(pseamldr_data_t* pseamldr_data)
 {
     uint32_t eax, ebx, ecx, edx;
 
-    ia32_cpuid(CPUID_GET_MAX_PA_LEAF, 0, &eax, &ebx, &ecx, &edx);
+    ia32_safe_cpuid(CPUID_GET_MAX_PA_LEAF, 0, &eax, &ebx, &ecx, &edx);
 
     pseamldr_data->system_info.max_pa = eax & CPUID_MAX_PA_BITS;
 

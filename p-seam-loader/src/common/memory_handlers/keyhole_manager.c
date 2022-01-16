@@ -54,11 +54,6 @@ static void fill_keyhole_pte(uint16_t keyhole_idx, uint64_t pa, bool_t is_writab
 
     new_pte.raw = (uint64_t)0;
 
-#ifdef KBL_SDV_BUILD
-    // Remove the HKID from pa, because there's no HKID on KBL
-    pa &= ~(get_global_data()->hkid_mask);
-#endif
-
     new_pte.fields_4k.addr = (pa >> 12);
     new_pte.fields_4k.p    = 1;
     new_pte.fields_4k.a    = 1;
