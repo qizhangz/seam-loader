@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -17,7 +17,7 @@
 #include "../../../include/pseamldr_basic_defs.h"
 #include "../../../include/pseamldr_basic_types.h"
 
-#ifdef TDX_DBG_TRACE
+#ifdef DEBUGFEATURE_TDX_DBG_TRACE
 
 typedef __builtin_va_list va_list;
 

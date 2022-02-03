@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -16,7 +16,7 @@
 #include "memory_handlers/keyhole_manager.h"
 #include "helpers/helpers.h"
 
-#ifdef TDX_DBG_TRACE
+#ifdef DEBUGFEATURE_TDX_DBG_TRACE
 void init_debug_control(void)
 {
     tdx_outport80(0xFC00);

@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -19,6 +19,7 @@
 #include "../data_structures/pseamldr_data.h"
 #include "../data_structures/pseamldr_data.h"
 #include "../data_structures/pseamldr_data_types.h"
+#include "../helpers/error_reporting.h"
 
 //****************************************************************************************
 // Optimized accessors to SEAM module data structures - always use those in the code
@@ -62,10 +63,10 @@ _STATIC_INLINE_ p_sysinfo_table_t* get_psysinfo_table(void)
 _STATIC_INLINE_ pseamldr_data_t* calculate_local_data(void)
 {
     void* local_data_addr;
-    _ASM_ ("rdgsbase %0"
-               :"=r"(local_data_addr)
-               :
-               :"cc");
+    _ASM_VOLATILE_ ("rdgsbase %0"
+                     :"=r"(local_data_addr)
+                     :
+                     :"cc");
 
     return (pseamldr_data_t*)local_data_addr;
 }
@@ -75,10 +76,10 @@ _STATIC_INLINE_ pseamldr_data_t* calculate_local_data(void)
 _STATIC_INLINE_ p_sysinfo_table_t* calculate_sysinfo_table(void)
 {
     void* sysinfo_table_addr;
-    _ASM_ ("rdfsbase %0"
-               :"=r"(sysinfo_table_addr)
-               :
-               :"cc");
+    _ASM_VOLATILE_ ("rdfsbase %0"
+                     :"=r"(sysinfo_table_addr)
+                     :
+                     :"cc");
 
     return (p_sysinfo_table_t*)sysinfo_table_addr;
 }
@@ -86,11 +87,10 @@ _STATIC_INLINE_ p_sysinfo_table_t* calculate_sysinfo_table(void)
 // Must be first thing to do before accessing data or sysinfo table
 _STATIC_INLINE_ pseamldr_data_t* init_data_fast_ref_ptrs(void)
 {
-    pseamldr_data_t* local_data = get_pseamldr_data();
+    pseamldr_data_t* local_data = calculate_local_data();
 
-    IF_RARE (!local_data)
+    IF_RARE (!local_data->seamldr_data_fast_ref_ptr)
     {
-        local_data = calculate_local_data();
         local_data->seamldr_data_fast_ref_ptr = local_data;
         local_data->psysinfo_fast_ref_ptr = calculate_sysinfo_table();
     }
@@ -100,9 +100,16 @@ _STATIC_INLINE_ pseamldr_data_t* init_data_fast_ref_ptrs(void)
 
 // This function relies on the P-SEAMLDR physical memory layout as defined in NP-SEAMLDR PAS (v0.92, figure 2.1)
 // If this layout ever changes in NP-SEAMLDR, then P-SEAMLDR would have to change too.
-_STATIC_INLINE_ uint64_t translate_module_va_to_pa(uint64_t va)
+// This function should be used only with virtual addresses that are located in P-SEAMLDR data region
+//
+// !!!DO NOT!!! Use VA's of variables on stack!!!
+_STATIC_INLINE_ uint64_t translate_module_data_va_to_pa(uint64_t va)
 {
     p_sysinfo_table_t* st_p = get_psysinfo_table();
+
+    pseamldr_sanity_check(((va >= st_p->data_rgn_base) && (va < st_p->data_rgn_base + st_p->data_rgn_size)),
+                          SCEC_HELPERS_SOURCE, 5);
+
     // Let offset_in_data_region = v – FS:DATA_REGION_BASE
     uint64_t offset_in_data_region = va - st_p->data_rgn_base;
 

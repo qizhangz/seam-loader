@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -16,7 +16,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
 
-#ifdef TDX_DBG_TRACE
+#ifdef DEBUGFEATURE_TDX_DBG_TRACE
 
 /**
  * @brief convert nibble to lowercase hex char

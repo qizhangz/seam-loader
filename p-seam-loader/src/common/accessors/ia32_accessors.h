@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -171,15 +171,8 @@ _STATIC_INLINE_ uint64_t bit_scan_reverse64(uint64_t mask)
 
 _STATIC_INLINE_ void movdir64b(const void *src, uint64_t dst)
 {
-#if defined(KBL_SDV_BUILD) || defined(ICX_SDV_BUILD)
-    for (uint8_t i = 0; i < 8; i++)
-    {
-        ((uint64_t*)(dst))[i] = ((uint64_t*)(src))[i];
-    }
-#else
     _ASM_VOLATILE_ (".byte  0x66, 0x0F, 0x38, 0xF8," /*movdir64b op*/ "0x37;" /*ModRM = RDI->RSI*/
                     : : "D"(src), "S"(dst) : "memory" );
-#endif
 }
 
 _STATIC_INLINE_ void lfence(void)

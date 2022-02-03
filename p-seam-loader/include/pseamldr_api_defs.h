@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -27,8 +27,8 @@ typedef enum
     SEAMLDR_SHUTDOWN_LEAF         = 0x8000000000000002,
     SEAMLDR_SEAMINFO_LEAF         = 0x8000000000000003
 
-#ifdef TDX_DBG_TRACE
-    ,TDDEBUGCONFIG_LEAF           = 0x8000000000000FE
+#ifdef DEBUGFEATURE_TDX_DBG_TRACE
+    ,TDDEBUGCONFIG_LEAF           = 0x80000000000000FE
 #endif
 
 } SEAMCALL_LEAVES_OPCODES;

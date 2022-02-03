@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -92,10 +92,6 @@ _STATIC_INLINE_ uint64_t mask_to_size(uint64_t mask)
  */
 void basic_memset(uint64_t dst, uint64_t dst_bytes, uint8_t val, uint64_t nbytes);
 void basic_memset_to_zero(void * dst, uint64_t nbytes);
-
-#ifdef NO_OPT_BUILD
-void* memset(void *str, int c, uint32_t n);
-#endif
 
 /**
  * @brief Fill cache lines with movdir64 using cache aligned & sized chunks

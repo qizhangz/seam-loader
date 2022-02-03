@@ -1,0 +1,60 @@
+#;**********************************************************************;
+#;*                                                                    *;
+#;* Intel Proprietary                                                  *;
+#;*                                                                    *;
+#;* Copyright 2021 Intel Corporation All Rights Reserved.              *;
+#;*                                                                    *;
+#;* Your use of this software is governed by the TDX Source Code       *;
+#;* LIMITED USE LICENSE.                                               *;
+#;*                                                                    *;
+#;* The Materials are provided "as is," without any express or         *;
+#;* implied warranty of any kind including warranties of               *;
+#;* merchantability, non-infringement, title, or fitness for a         *;
+#;* particular purpose.                                                *;
+#;*                                                                    *;
+#;**********************************************************************;
+
+
+# General target for generating 32bit object and depends files
+# We are another for 64bit files that librarys can include as well
+
+GEN_OBJECTS:
+  @echo ===== BUILDING HELPER FILES $(OBJ_DIR) =====
+  @<<$(OBJ_DIR)\generate-objlist.cmd $(OBJ_DIR) 32
+@SETLOCAL ENABLEDELAYEDEXPANSION
+
+@set objdir=%1
+@set arch=%2
+@set helperdir=!objdir!\helpers\!arch!
+@md !helperdir! > nul 2>&1
+@del !helperdir!\do_generate.tmp > nul 2>&1
+
+@fc !helperdir!\src_new.tmp !helperdir!\src_old.tmp > nul 2>&1
+@if /i NOT "!errorlevel!" == "0" @(
+  echo miscompare >> !helperdir!\do_generate.tmp
+)
+
+@for %%J in (objects depends objectlist) do @(
+  set helperfile=!helperdir!\%%J.tmp
+  IF NOT EXIST !helperfile! ( 
+    echo !helperfile! >> !helperdir!\do_generate.tmp
+  )
+)
+
+@IF EXIST !helperdir!\do_generate.tmp @( 
+  @del !helperdir!\objectlist.tmp > nul 2>&1
+  @echo OBJECTS!arch!= \> !helperdir!\objects.tmp
+  @echo.>!helperdir!\depends.tmp
+  @for /F %%i IN (!helperdir!\src_new.tmp) DO @(
+    @for %%a IN ("%%i") DO @(
+      set temp=%%~na
+      set temp1=%%~fa
+    )
+    @echo. $$^(OBJ_DIR^)\!temp!.obj \>> !helperdir!\objects.tmp
+    @echo !objdir!\!temp!.obj >> !helperdir!\objectlist.tmp
+    @echo.$$^(OBJ_DIR^)\!temp!.obj : !temp1! $$^(ALL_DEPS^)>> !helperdir!\depends.tmp
+  )
+  @echo. >> !helperdir!\objects.tmp
+)
+@ENDLOCAL && exit /b %errorlevel%
+<<

@@ -65,7 +65,8 @@ UINT64* MapPage(SEAMRR_PT_CTX* SeamrrPtCtx, UINT64 LinearAddr, UINT64 PhysAddr, 
         if (PxeLinear[PtIdx] == 0) {
             // if the allocator reached the data region - error
             if (SeamrrPtCtx->PtAllocatorPa >= SeamldrData.SeamrrBase + SeamldrData.SeamrrSize -
-                (C_P_SYS_INFO_TABLE_SIZE + SeamldrData.PSeamldrConsts->CCodeRgnSize + SeamldrData.PSeamldrConsts->CDataStackSize + SeamldrData.PSeamldrConsts->CDataRgnSize)) {
+                (C_P_SYS_INFO_TABLE_SIZE + SeamldrData.PSeamldrConsts->CCodeRgnSize + SeamldrData.PSeamldrConsts->CDataStackSize + P_SEAMLDR_SHADOW_STACK_SIZE + 
+                    SeamldrData.PSeamldrConsts->CDataRgnSize)) {
                 return NULL;
             }
             PxeLinear[PtIdx] = SeamrrPtCtx->PtAllocatorPa | IA32_PG_P | IA32_PG_RW | IA32_PG_A | IA32_PG_U;

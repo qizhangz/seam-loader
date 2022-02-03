@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -151,7 +151,7 @@ void pseamldr_dispatcher(void)
         pseamldr_data->vmm_regs.rax = seamldr_seaminfo(pseamldr_data->vmm_regs.rcx);
         break;
     }
-#ifdef TDX_DBG_TRACE
+#ifdef DEBUGFEATURE_TDX_DBG_TRACE
     case TDDEBUGCONFIG_LEAF:
     {
         pseamldr_data->vmm_regs.rax = td_debug_config(pseamldr_data->vmm_regs.rcx, pseamldr_data->vmm_regs.rdx,

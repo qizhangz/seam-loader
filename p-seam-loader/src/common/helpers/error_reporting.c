@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -31,7 +31,7 @@ void pseamldr_report_error_and_halt(uint32_t source_id, uint32_t code)
 
 void pseamldr_arch_fatal_error( void )
 {
-#ifdef TDX_DBG_TRACE
+#ifdef DEBUGFEATURE_TDX_DBG_TRACE
     TDX_ERROR("!!!!!!!!!!!!!!!!!! - Module critical error - UD2 - !!!!!!!!!!!!!!!!!!\n");
     TDX_ERROR("!!!!!!!!!!!!!!!!!!         - LAST MESSAGE -        !!!!!!!!!!!!!!!!!!\n");
     debug_control_t* p_ctl = &(get_pseamldr_data()->debug_control);

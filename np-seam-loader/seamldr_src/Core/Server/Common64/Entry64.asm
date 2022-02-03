@@ -77,7 +77,6 @@ Entry64 PROC FRAME
         
         mov     rcx, pCom64data
 
-        lidt    FWORD PTR [rcx].SEAMLDR_COM64_DATA.NewIDTR
         lgdt    FWORD PTR [rcx].SEAMLDR_COM64_DATA.OriginalGdtr
         
         ;; turn off PCIDE bit in current CR4
@@ -105,6 +104,9 @@ DoExitAC:
         
         push    2
         popfq
+
+        lidt    FWORD PTR [rcx].SEAMLDR_COM64_DATA.NewIDTR        
+     
 
         ;; Clear other registers as described in spec - not xor to avoid changing flags
         mov     rcx, 0

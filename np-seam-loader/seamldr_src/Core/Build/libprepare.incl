@@ -1,0 +1,111 @@
+#;**********************************************************************;
+#;*                                                                    *;
+#;* Intel Proprietary                                                  *;
+#;*                                                                    *;
+#;* Copyright 2021 Intel Corporation All Rights Reserved.              *;
+#;*                                                                    *;
+#;* Your use of this software is governed by the TDX Source Code       *;
+#;* LIMITED USE LICENSE.                                               *;
+#;*                                                                    *;
+#;* The Materials are provided "as is," without any express or         *;
+#;* implied warranty of any kind including warranties of               *;
+#;* merchantability, non-infringement, title, or fitness for a         *;
+#;* particular purpose.                                                *;
+#;*                                                                    *;
+#;**********************************************************************;
+
+
+libprepare:
+	@echo ===== PREPARE $(OBJ_DIR) ======
+        @-md $(OBJ_DIR) > nul 2>&1
+	-@move  /Y $(OBJ_DIR)\core_src_new.tmp $(OBJ_DIR)\core_src_old.tmp > nul 2>&1
+        -@move  /Y $(OBJ_DIR)\core_src64_new.tmp $(OBJ_DIR)\core_src64_old.tmp > nul 2>&1
+        @<<generate-srclist.cmd  $(SRC_DIR) $(OBJ_DIR) $(SRC_DIR)\INCLUDE
+@SETLOCAL ENABLEDELAYEDEXPANSION
+
+@set srcdir=%1
+@set libdir=%2
+@set incdir=%3
+@set rootdir=%ACM_ROOT_DIR%
+@set helperdir=!libdir!\helpers
+
+@for %%J in (32 64) do @(
+  set thishelperdir=!helperdir!\%%J
+  @md !thishelperdir!\ > nul 2>&1
+  @move  /Y !thishelperdir!\src_new.tmp !thishelperdir!\src_old.tmp > nul 2>&1
+)
+
+@echo !rootdir! > !libdir!\tempfile
+@for %%? in (!libdir!\tempfile) do @( set /A strlength=%%~z? - 2)
+@rem echo !strlength!
+
+
+@set errorlevel=
+@for /f %%I in ('dir /AD /B !srcdir!') do @(
+	if /i NOT "%%I" == "Include" (
+	if /i NOT "%%I" == "Build" (
+	if /i NOT "%%I" == "Lib" (
+	if /i NOT "%%I" == "Client" (
+	if /i NOT "%%I" == "Server" (
+	set dirs=!dirs! %%I
+	)))))
+)
+@rem echo !dirs!
+@for  %%i IN (!dirs!) DO @(
+	set _dir=%%i
+	set _dummy=!_dir:64=!
+	IF NOT !_dummy! == !_dir! (
+    set thishelperdir=!helperdir!\64
+	) else (
+    set thishelperdir=!helperdir!\32
+	)
+
+	@for /f  %%J in ('dir !srcdir!\%%i\*.asm !srcdir!\%%i\*.c /b /s') do @(
+		echo %%J >> !thishelperdir!\src_new.tmp
+	)
+)
+
+@echo. > !libdir!\headerdepends.incl
+@echo. > !libdir!\headerinc.incl
+@echo. > !libdir!\headertargets.incl
+
+@set incs=common.h,common64.h,header.h,acmerr.h,sinitcom.h,sinitmle.h,sinitheap.h
+
+
+@set first=1
+
+@for %%J in (!incs!) do @(
+	set headerfile=!incdir!\%%J
+  if exist !headerfile! (
+    if !first! == 1 (
+      @echo HEADERS = \> !libdir!\headerinc.incl
+      @echo ^$(HEADERS^) : \> !libdir!\headerdepends.incl
+      @md !libdir!\asm-includes\ 2>nul
+      @set first=0
+    )
+    @for %%a IN ("%%J") DO @set temp=%%~na
+
+		echo !libdir!\asm-includes\!temp!.inc \>> !libdir!\headerinc.incl
+    echo !headerfile! \>> !libdir!\headerdepends.incl
+
+    @echo.!libdir!\asm-includes\!temp!.inc: !headerfile! >> !libdir!\headertargets.incl
+    @echo.   ^$(H2INCX^) ^$(H2INCX_FLAGS^) -o !libdir!\asm-includes !headerfile! ^>nul 2^>^&1 ^$(ENDVERBOSE^) >> !libdir!\headertargets.incl
+    @echo. >> !libdir!\headertargets.incl
+	)
+)
+@echo. >> !libdir!\headerdepends.incl
+@echo. >> !libdir!\headerinc.incl
+
+@ENDLOCAL && exit /b %errorlevel%
+<<
+
+#
+# Mandatory to call nmake to build GEN_OBJECTS recursively since FC runs in
+# preprocessing and is evaluated every time irrespective to what target is
+# executed.
+#
+        @$(MAKE) /NOLOGO /F core.mak GEN_OBJECTS LIB_BASE=$(LIB_BASE)
+
+
+
+

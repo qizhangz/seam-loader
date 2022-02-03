@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -16,5 +16,5 @@
 
 void __wrap___stack_chk_fail(void)
 {
-    pseamldr_sanity_check(true, SCEC_CANARY_CORRUPT_SOURCE, 0);
+    pseamldr_sanity_check(false, SCEC_CANARY_CORRUPT_SOURCE, 0);
 }

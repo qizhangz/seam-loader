@@ -1,3 +1,7 @@
+# SEAM-Loader
+
+[Build Instructions](./BUILD.md)
+
 Secure Arbitration Mode (SEAM) is an extension to Virtual Machines Extension (VMX) architecture to define a new VMX root mode called SEAM root.
 This SEAM root mode is used to host a CPU-attested module to create virtual machine (VM) guests called Trust Domains (TD).
 

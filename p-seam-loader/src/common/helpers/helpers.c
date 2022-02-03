@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -22,16 +22,6 @@
 #include "memory_handlers/keyhole_manager.h"
 #include "seam_sigstruct.h"
 #include "crypto/sha384.h"
-
-
-#ifdef NO_OPT_BUILD
-void* memset(void *str, int c, uint32_t n)
-{
-    basic_memset((uint64_t)str, (uint8_t)c, n);
-
-    return str;
-}
-#endif
 
 uint64_t get_num_addressable_lps_on_socket(void)
 {
@@ -143,13 +133,21 @@ bool_t is_addr_in_range(uint64_t addr, uint64_t base, uint64_t size)
 
 void seamextend_read(seamextend_t* seamextend_dst)
 {
-    uint64_t buffer_pa = translate_module_va_to_pa((uint64_t)seamextend_dst);
+    seamextend_t* tmp_buf = &get_pseamldr_data()->seamextend_tmp_buf;
+    uint64_t buffer_pa = translate_module_data_va_to_pa((uint64_t)tmp_buf);
+
     ia32_wrmsr(IA32_SEAMEXTEND_MSR_ADDR, buffer_pa | 0x1);
+
+    pseamldr_memcpy(seamextend_dst, sizeof(seamextend_t), tmp_buf, sizeof(seamextend_t));
 }
 
 void seamextend_write(seamextend_t* seamextend_src)
 {
-    uint64_t buffer_pa = translate_module_va_to_pa((uint64_t)seamextend_src);
+    seamextend_t* tmp_buf = &get_pseamldr_data()->seamextend_tmp_buf;
+    pseamldr_memcpy(tmp_buf, sizeof(seamextend_t), seamextend_src, sizeof(seamextend_t));
+
+    uint64_t buffer_pa = translate_module_data_va_to_pa((uint64_t)tmp_buf);
+
     ia32_wrmsr(IA32_SEAMEXTEND_MSR_ADDR, buffer_pa);
 }
 

@@ -1,0 +1,208 @@
+#;**********************************************************************;
+#;*                                                                    *;
+#;* Intel Proprietary                                                  *;
+#;*                                                                    *;
+#;* Copyright 2021 Intel Corporation All Rights Reserved.              *;
+#;*                                                                    *;
+#;* Your use of this software is governed by the TDX Source Code       *;
+#;* LIMITED USE LICENSE.                                               *;
+#;*                                                                    *;
+#;* The Materials are provided "as is," without any express or         *;
+#;* implied warranty of any kind including warranties of               *;
+#;* merchantability, non-infringement, title, or fitness for a         *;
+#;* particular purpose.                                                *;
+#;*                                                                    *;
+#;**********************************************************************;
+
+{$(SRC_DIR)\CommonSeamLdr}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS)  $(COMBIOSAC_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+        
+{$(SRC_DIR)\Crypto}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS)  $(COMBIOSAC_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)        
+
+{$(SRC_DIR)\Accessors}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\COMBIOSAC}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\COMBIOSAC}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS)  $(COMBIOSAC_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\COMBTG}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS)  $(COMBTG_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\COMMON}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\COMMON}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(COMMON_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\COMMON64}.asm{$(OBJ_DIR)}.obj:
+	@echo ML64 $(@F)
+        $(ML64)  $(ML64_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\COMMON64}.c{$(OBJ_DIR)}.obj:
+	@echo CL64 $(@F)
+        $(CL64)  $(CL64_FLAGS) $(COMMON_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\COMSINIT}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\COMSINIT}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(COMSINIT_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+#{$(SRC_DIR)\COMSTARTUP}.asm{$(OBJ_DIR)}.obj:
+#	@echo ML $(@F)
+#        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+#{$(SRC_DIR)\COMSTARTUP}.c{$(OBJ_DIR)}.obj:
+#	@echo CL $(@F)
+#        $(CL)  $(CL_FLAGS) $(TPM_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\CRYPTO\INTERNAL\HASH}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\CRYPTO\INTERNAL\HASH}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(HASH_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\CRYPTO\INTERNAL}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(HASH_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\LCP}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\LCP}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(LCP_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\PCI}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\PCI}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(PCI_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\RANGES}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(RANGES_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\RANGES}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(TPM_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\TPM12}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\TPM12}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(TPM_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\TPM20}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\TPM20}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(TPM_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\INTERFACEFIFO}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\INTERFACEFIFO}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(TPM_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\INTERFACECRB}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\INTERFACECRB}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(TPM_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\TPM20\TPM20LIB}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\TPM20\TPM20LIB}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(TPM_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\TPM20\TPM20LIB\COMMON}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TPM\TPM20\TPM20LIB\COMMON}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(TPM_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\CRYPTO}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+  $(CL)  $(CL_FLAGS) $(CRYPTO_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\CRYPTO\IPP}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(IPP_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\CRYPTO\IPP}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TRACE}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TRACE}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(TRACE_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TRACE\SERIAL}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TRACE\SERIAL}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+        $(CL)  $(CL_FLAGS) $(SERIAL_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TRACE\USB}.asm{$(OBJ_DIR)}.obj:
+	@echo ML $(@F)
+        $(ML)  $(ML_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+{$(SRC_DIR)\TRACE\USB}.c{$(OBJ_DIR)}.obj:
+	@echo CL $(@F)
+  $(CL)  $(CL_FLAGS) $(SERIAL_CL_FLAGS) /Fo$@ $< $(ENDVERBOSE)
+
+$(OBJ_DIR)\$(LIBRARY)       : $(HEADERS) $(ASMHEADERS) $(OBJECTS32) $(INC_DIR) $(LIB_BUILDFILES)
+  @echo LINK $(@F)
+  $(LIB) $(LIB_FLAGS) /OUT:$(OBJ_DIR)\$(LIBRARY) @$(OBJ_DIR)\helpers\32\objectlist.tmp
+
+$(OBJ_DIR)\$(LIBRARY64)     : $(HEADERS) $(ASMHEADERS) $(OBJECTS64) $(INC_DIR) $(LIB_BUILDFILES)
+  @echo LINK $(@F)
+  $(LIB64) $(LIB64_FLAGS) /OUT:$(OBJ_DIR)\$(LIBRARY64) @$(OBJ_DIR)\helpers\64\objectlist.tmp
+

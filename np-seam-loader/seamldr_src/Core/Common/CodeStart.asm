@@ -114,6 +114,11 @@ AcmEntryPoint PROC NEAR
         mov     dword ptr ds:[ebp + stackStart + 4], 0       ; Make sure that Null IDTR is actually zero
         mov     dword ptr ds:[ebp + stackStart + 4 + 4], 0
         lidt    fword ptr ds:[ebp + stackStart + 4]          ; Load NULL IDTR
+        
+        cmp     eax, ENTERACCS
+        jz     _IS_ENTERACCS        
+        db      0Fh, 0Bh                ; ud2        
+        _IS_ENTERACCS:                
 
         ;
         ; Save registers to Fixup scratch area (size of 40h bytes reserved for fixup routine use)
@@ -137,7 +142,7 @@ AcmEntryPoint PROC NEAR
 
         and     edx, 0FFFFFFh
         xor     ebx, ebx
-        mov     bx, HeaderStart.SeSvn
+        mov     bx, word ptr ds:[ebp + HeaderStart.SeSvn] 
         shl     ebx, 24
         or      edx, ebx
 
@@ -146,20 +151,6 @@ AcmEntryPoint PROC NEAR
         and     eax, 0FFFFFF00h
         wrmsr
         
-        ; for non PW ACMs: make sure to work only in pre-PV steps:
-        mov eax, 1
-        xor ecx, ecx
-        cpuid
-
-        cmp eax, SPR_C0_FMS
-        je _CPUID_STEP_OK
-        cmp eax, SPR_D0_FMS
-        je _CPUID_STEP_OK
-        cmp eax, SPR_E0_FMS
-        je _CPUID_STEP_OK
-        db      0Fh, 0Bh                ; ud2  
-        _CPUID_STEP_OK:        
-
 
         mov     ecx, MSR_BIOS_DONE
         rdmsr

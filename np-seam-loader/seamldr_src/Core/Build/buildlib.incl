@@ -1,0 +1,33 @@
+#;**********************************************************************;
+#;*                                                                    *;
+#;* Intel Proprietary                                                  *;
+#;*                                                                    *;
+#;* Copyright 2021 Intel Corporation All Rights Reserved.              *;
+#;*                                                                    *;
+#;* Your use of this software is governed by the TDX Source Code       *;
+#;* LIMITED USE LICENSE.                                               *;
+#;*                                                                    *;
+#;* The Materials are provided "as is," without any express or         *;
+#;* implied warranty of any kind including warranties of               *;
+#;* merchantability, non-infringement, title, or fitness for a         *;
+#;* particular purpose.                                                *;
+#;*                                                                    *;
+#;**********************************************************************;
+
+#*****************************************************************************
+#
+# This is one of pre-build steps - update of core library if needed. In case
+# of any of local make files change, touch CORE.MAK file - this enforces full
+# rebuild of core library. This is needed to ensure that changes in build
+# switches affecting core are propagated.
+#
+#*****************************************************************************
+buildlib: $(LIB_BUILDDIR)\core.mak
+        @rem echo ===== Performing local LIB $(LIB_BUILDDIR) BUILD step =====
+        @cd $(LIB_BUILDDIR)
+        $(NMAKE) /NOLOGO /f $(LIB_BUILDDIR)\core.mak $(CORE_FLAGS)
+
+$(LIB_BUILDDIR)\core.mak: $(MAK_DEPS)
+        @echo Updating time stamp for - $@
+        @attrib -r $@
+        @copy $@+,,$@

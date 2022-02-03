@@ -20,13 +20,18 @@
 #include <NpSeamldr.h>
 #include <paging.h>
 
+static volatile UINT8 STSRegister;
+
 static void CloseTPMLocality(PT_CTX* PtCtx)
 {
     // Map the LT_PRV MMIO page as a single 4KB page with UC memtype
     // This is the first mapping the we do, so it should always succeed with enough page table entries left
     volatile TXT* TXTPrivateBase = (volatile TXT*)MapPhysicalRange(PtCtx, LT_PRV_BASE, sizeof(TXT), PAGE_WRITABLE, PAGE_4K, PAGE_UC_MEMTYPE);
     volatile UINT8 ReadByte;
-    volatile UINT8 STSRegister;
+
+    if ((UINT64)TXTPrivateBase == (UINT64)BAD_MAPPING) {
+        _ud2();
+    }
 
     // Note that access to MMIO registers must be done as UC accesses.
 
@@ -50,14 +55,44 @@ static void CloseTPMLocality(PT_CTX* PtCtx)
             ReadByte = *((UINT8*)(&TXTPrivateBase->LT_CMD_CLOSE_PRIVATE));
             PauseCpu();
         } while ((ReadByte != 0) && (ReadByte != 0xFF));
+
+        // 1308911717 - Closing LT private closes locality 2 as well, so closing locality 2 explicitly is redundant
     }
 
     RemoveLinearMapping(PtCtx, (UINT64)TXTPrivateBase, FALSE);
 }
 
+static void ReopenTPMLocality(PT_CTX* PtCtx)
+{
+    // Map the LT_PRV MMIO page as a single 4KB page with UC memtype
+    // This is the first mapping the we do, so it should always succeed with enough page table entries left
+    volatile TXT* TXTPrivateBase = (volatile TXT*)MapPhysicalRange(PtCtx, LT_PRV_BASE, sizeof(TXT), PAGE_WRITABLE, PAGE_4K, PAGE_UC_MEMTYPE);
+    volatile UINT8 ReadByte;
+
+    if ((UINT64)TXTPrivateBase == (UINT64)BAD_MAPPING) {
+        _ud2();
+    }
+    // If the value read has bit 0 set to 1 (i.e.LT.STS[0] == 1) then re-open the TXT private space and the TPM locality 2. 
+    if ((STSRegister & 0x1) != 0) {
+        // The post - SENTER state can be determined by reading 1 - byte at LT.STS register at MMIO address 0xFED20000. 
+
+        // If the value read has bit 0 set to 1 (i.e.LT.STS[0] == 1) then re-open locality 2 for the MLE
+        // Note that access to MMIO registers must be done as UC accesses.
+
+        *((UINT8*)(&TXTPrivateBase->LT_CMD_OPEN_LOCALITY2)) = 0x0;
+        do {
+            ReadByte = *((UINT8*)(&TXTPrivateBase->LT_CMD_OPEN_LOCALITY2));
+            PauseCpu();
+        } while ((ReadByte != 0) && (ReadByte != 0xFF));
+
+        RemoveLinearMapping(PtCtx, (UINT64)TXTPrivateBase, FALSE);
+    }
+}
+
 void Target64 (SEAMLDR_COM64_DATA *pCom64)
 {
-	__security_init_cookie();
+    UINT64 canonicity_mask = 0;
+    __security_init_cookie();
     pCom64->NewIDTR.Limit = pCom64->OriginalIDTRLimit;
     pCom64->NewIDTR.Base = pCom64->OriginalR12;
     *(UINT64 *)(pCom64->OriginalGdtr + 2) = pCom64->OriginalR9;
@@ -67,5 +102,11 @@ void Target64 (SEAMLDR_COM64_DATA *pCom64)
     PT_CTX* PtCtx = (PT_CTX*)pCom64->PtCtxPtr;
 
     CloseTPMLocality(PtCtx);
+    canonicity_mask = ((pCom64->OriginalCR4 & CR4_LA57) != 0) ? CANONICITY_MASK_5LP : CANONICITY_MASK_4LP;
+    if (((pCom64->ResumeRip & canonicity_mask) != 0) && ((pCom64->ResumeRip & canonicity_mask) != canonicity_mask)) {
+        _ud2();
+    }
+        
     SeamldrAcm(pCom64, PtCtx);
+    ReopenTPMLocality(PtCtx);
 }

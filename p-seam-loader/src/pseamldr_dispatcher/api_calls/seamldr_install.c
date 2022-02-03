@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -33,7 +33,7 @@ static bool_t check_seam_sigstruct(seam_sigstruct_t* seam_sigstruct)
     // - Exponent is supported exponent
     // - Header Type, Header Length, Header Version, and module type are correct
     // - Module Vendor is 0x8086
-    // - All fields marked as “must be” have the specified values/sizes
+    // - All fields marked as "must be" have the specified values/sizes
 
     IF_RARE (!pseamldr_memcmp_to_zero(seam_sigstruct->reserved0, sizeof(seam_sigstruct->reserved0)) ||
              !pseamldr_memcmp_to_zero(seam_sigstruct->reserved1, sizeof(seam_sigstruct->reserved1))

@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -41,9 +41,31 @@ pseamldr_entry_point:
     movq %r15,  %gs:PSEAMLDR_DATA_VMM_GPRS_STATE_OFFSET+120
 
     /**
+     * Clean the VMM-controlled content from the GPR's to prevent speculative-based attacks
+     */
+    xor %rax,  %rax
+    xor %rcx,  %rcx
+    xor %rdx,  %rdx
+    xor %rbx,  %rbx
+    // Don't touch RSP, it contains the current module stack value
+    xor %rbp,  %rbp
+    xor %rsi,  %rsi
+    xor %rdi,  %rdi
+    xor %r8,   %r8
+    xor %r9,   %r9
+    xor %r10,  %r10
+    xor %r11,  %r11
+    xor %r12,  %r12
+    xor %r13,  %r13
+    xor %r14,  %r14
+    xor %r15,  %r15
+
+    lfence
+
+    /**
      * Call the PSEAMLDR dispatcher
      */
-     callq pseamldr_dispatcher
+    callq pseamldr_dispatcher
 
     /**
      * Dispatcher should not return to this code

@@ -62,6 +62,9 @@
 
 #define NON_CANONICAL_RIP               0x1000000000000000ULL
 
+#define CANONICITY_MASK_4LP (~(BIT47 - 1))
+#define CANONICITY_MASK_5LP (~(BIT56 - 1))
+
 #define SEAM_EXTEND_VALID_INTEL         0x1FF
 #define SEAM_EXTEND_VALID_OEM           0xFFFF  
 

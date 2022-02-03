@@ -1,4 +1,4 @@
-// Intel Proprietary 
+// Intel Proprietary
 // 
 // Copyright 2021 Intel Corporation All Rights Reserved.
 // 
@@ -134,6 +134,7 @@ typedef struct pseamldr_data_s
 
     ALIGN(2048) seam_sigstruct_t  seam_sigstruct_snapshot;
     ALIGN(256) seamextend_t seamextend_snapshot;
+    ALIGN(256) seamextend_t seamextend_tmp_buf;
 
     uint8_t               update_bitmap[MAX_NUM_OF_LPS / 8];
     uint32_t              lps_in_update;
@@ -141,6 +142,7 @@ typedef struct pseamldr_data_s
     uint32_t              lps_in_shutdown;
 
     uint32_t              last_interrupted_lp;
+    uint32_t              reserved;
     bool_t                module_range_initialized;
     uint32_t              num_remaining_updates;
 
@@ -151,7 +153,7 @@ typedef struct pseamldr_data_s
 
     rsa_ctx_t             rsa_context;
 
-#ifdef TDX_DBG_TRACE
+#ifdef DEBUGFEATURE_TDX_DBG_TRACE
     uint32_t              local_dbg_msg_num;
     debug_control_t       debug_control;
     debug_message_t       trace_buffer[TRACE_BUFFER_SIZE];
